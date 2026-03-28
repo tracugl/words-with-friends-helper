@@ -26,10 +26,6 @@ npm run build   # outputs to dist/
 npm run preview # preview the production build locally
 ```
 
-## Deploying
-
-See [CLOUDFLARE.md](CLOUDFLARE.md) for Cloudflare Pages deployment instructions.
-
 ## Tech Stack
 
 - [React 18](https://react.dev) + [Vite](https://vitejs.dev)
