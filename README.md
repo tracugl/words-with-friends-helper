@@ -48,4 +48,4 @@ npx wrangler pages deploy dist
 - [React 18](https://react.dev) + [Vite](https://vitejs.dev)
 - [Tailwind CSS v3](https://tailwindcss.com)
 - [shadcn/ui](https://ui.shadcn.com) components (Card, Input)
-- [an-array-of-english-words](https://github.com/nicmart/an-array-of-english-words) dictionary (~275k words, bundled client-side)
+- [an-array-of-english-words](https://github.com/words/an-array-of-english-words) dictionary (~275k words, bundled client-side)
