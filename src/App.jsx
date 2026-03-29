@@ -10,7 +10,8 @@ const TILE_VALUES = {
   u: 2, v: 5, w: 4, x: 8, y: 3, z: 10,
 };
 
-/** CSS classes defined in index.css — driven by CSS variables, theme-aware */
+const THEME_STORAGE_KEY = "wwfh-theme";
+
 const VARIANT_STYLES = {
   normal:   "tile-normal",
   wildcard: "tile-wildcard",
@@ -20,10 +21,10 @@ const VARIANT_STYLES = {
 };
 
 const INPUT_PANELS = [
-  { key: "letters",      title: "Letters",       variant: "normal",   description: "Enter your rack letters. Use * or ? as wildcards." },
-  { key: "pattern",      title: "Pattern",        variant: "anchored", description: "Lock letters in position using _. Example: d_p means D, any letter, P." },
-  { key: "boardWord",    title: "Board Word",     variant: "crossing", description: "Existing word on the board. One letter can be used as a crossing tile." },
-  { key: "boardLetters", title: "Board Letters",  variant: "board",    description: "Loose letters already on the board. One can be used as a crossing tile." },
+  { key: "letters",      title: "Letters",       variant: "normal",   description: "Enter your tiles, use `*` or `?` as wildcards." },
+  { key: "pattern",      title: "Pattern",        variant: "anchored", description: "Lock letters in position with `_` e.g. `d_p` matches dip, dap, dep" },
+  { key: "boardWord",    title: "Board Word",     variant: "crossing", description: "Specify a word already on the board; one of its letters will be used as a crossing tile" },
+  { key: "boardLetters", title: "Board Letters",  variant: "board",    description: "Specify loose letters on the board; one will be used as an anchor" },
 ];
 
 const DICTIONARY = (Array.isArray(words) ? words : [])
@@ -40,13 +41,13 @@ function useDebounce(value, delay) {
 }
 
 function useTheme() {
-  const [theme, setTheme] = useState(() => {
-    try { return localStorage.getItem("wwfh-theme") || "light"; } catch { return "light"; }
-  });
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute("data-theme") || "light",
+  );
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("wwfh-theme", theme); } catch {}
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch {}
   }, [theme]);
 
   const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
