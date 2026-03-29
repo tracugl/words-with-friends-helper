@@ -10,19 +10,21 @@ const TILE_VALUES = {
   u: 2, v: 5, w: 4, x: 8, y: 3, z: 10,
 };
 
+const THEME_STORAGE_KEY = "wwfh-theme";
+
 const VARIANT_STYLES = {
-  normal:   "from-amber-100 to-amber-200 border-amber-300",
-  wildcard: "from-purple-100 to-purple-200 border-purple-300",
-  anchored: "from-rose-100 to-rose-200 border-rose-300",
-  crossing: "from-blue-100 to-blue-200 border-blue-300",
-  board:    "from-teal-100 to-teal-200 border-teal-300",
+  normal:   "tile-normal",
+  wildcard: "tile-wildcard",
+  anchored: "tile-anchored",
+  crossing: "tile-crossing",
+  board:    "tile-board",
 };
 
 const INPUT_PANELS = [
-  { key: "letters",      title: "Letters",       variant: "normal",   description: "Enter your rack letters. Use * or ? as wildcards." },
-  { key: "pattern",      title: "Pattern",        variant: "anchored", description: "Lock letters in position using _. Example: d_p means D, any letter, P." },
-  { key: "boardWord",    title: "Board Word",     variant: "crossing", description: "Existing word on the board. One letter can be used as a crossing tile." },
-  { key: "boardLetters", title: "Board Letters",  variant: "board",    description: "Loose letters already on the board. One can be used as a crossing tile." },
+  { key: "letters",      title: "Letters",       variant: "normal",   description: "Enter your tiles, use `*` or `?` as wildcards." },
+  { key: "pattern",      title: "Pattern",        variant: "anchored", description: "Lock letters in position with `_` e.g. `d_p` matches dip, dap, dep" },
+  { key: "boardWord",    title: "Board Word",     variant: "crossing", description: "Specify a word already on the board; one of its letters will be used as a crossing tile" },
+  { key: "boardLetters", title: "Board Letters",  variant: "board",    description: "Specify loose letters on the board; one will be used as an anchor" },
 ];
 
 const DICTIONARY = (Array.isArray(words) ? words : [])
@@ -36,6 +38,20 @@ function useDebounce(value, delay) {
     return () => clearTimeout(id);
   }, [value, delay]);
   return debounced;
+}
+
+function useTheme() {
+  const [theme, setTheme] = useState(
+    () => document.documentElement.getAttribute("data-theme") || "light",
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    try { localStorage.setItem(THEME_STORAGE_KEY, theme); } catch {}
+  }, [theme]);
+
+  const toggleTheme = () => setTheme((t) => (t === "light" ? "dark" : "light"));
+  return { theme, toggleTheme };
 }
 
 function normalizeString(value) {
@@ -165,24 +181,54 @@ function solveWords({ letters = "", pattern = "", boardWord = "", boardLetters =
     .slice(0, limit);
 }
 
+function MoonIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
+function SunIcon() {
+  return (
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
 function LetterTile({ letter, value, small = false, variant = "normal" }) {
   return (
     <div
       className={cn(
-        "relative rounded-2xl border bg-gradient-to-br shadow-sm ring-1 ring-black/5",
+        "relative rounded-2xl border shadow-sm ring-1 ring-black/5",
         VARIANT_STYLES[variant],
         small ? "h-10 w-10" : "h-12 w-12",
       )}
     >
       <span
         className={cn(
-          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold uppercase text-stone-800",
+          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold uppercase",
           small ? "text-base" : "text-lg",
         )}
+        style={{ color: "var(--tile-text)" }}
       >
         {letter}
       </span>
-      <span className="absolute bottom-1 right-1 text-xs font-semibold text-stone-700">{value}</span>
+      <span
+        className="absolute bottom-1 right-1 text-xs font-semibold"
+        style={{ color: "var(--tile-score)" }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -211,6 +257,7 @@ function InputPanel({ title, variant, description, value, onChange }) {
 }
 
 export default function App() {
+  const { theme, toggleTheme } = useTheme();
   const [fields, setFields] = useState({ letters: "", pattern: "", boardWord: "", boardLetters: "" });
 
   const debouncedLetters      = useDebounce(fields.letters, 200);
@@ -229,7 +276,16 @@ export default function App() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 p-6">
-      <h1 className="text-2xl font-bold">Words With Friends Helper</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Words With Friends Helper</h1>
+        <button
+          onClick={toggleTheme}
+          className="flex items-center gap-2 rounded-full border bg-card px-3 py-1.5 text-sm text-muted-foreground card-shadow hover:text-foreground"
+        >
+          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+          {theme === "dark" ? "Light mode" : "Dark mode"}
+        </button>
+      </div>
 
       <div className="grid items-stretch gap-6 md:grid-cols-4">
         {INPUT_PANELS.map(({ key, title, variant, description }) => (
@@ -279,7 +335,7 @@ export default function App() {
                       );
                     })}
                   </div>
-                  <span className="ml-4 shrink-0 font-semibold text-stone-700">{result.score}</span>
+                  <span className="ml-4 shrink-0 font-semibold text-muted-foreground">{result.score}</span>
                 </div>
               ))
             )}
