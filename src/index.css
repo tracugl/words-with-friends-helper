@@ -3,17 +3,57 @@
 @tailwind utilities;
 
 @layer base {
+  /* ── Light theme tokens ──────────────────────────────────────────── */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --radius: 0.5rem;
+    /* Tailwind-mapped colors (HSL, space-separated) */
+    --background:        45 10% 95%;    /* #f5f4f0 warm off-white page */
+    --foreground:        20 10% 10%;    /* #1c1917 */
+    --card:              0 0% 100%;     /* #ffffff */
+    --card-foreground:   20 10% 10%;
+    --border:            45 8% 86%;     /* #e2e0d9 */
+    --input:             45 8% 86%;
+    --ring:              25 5% 44%;     /* #78716c */
+    --muted:             45 11% 97%;
+    --muted-foreground:  25 5% 44%;     /* #78716c */
+    --radius:            0.5rem;
+
+    /* Surface shadow */
+    --surface-shadow: 0 1px 4px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.06);
+
+    /* Tile palette */
+    --tile-normal-from:   #fef3c7; --tile-normal-to:   #fde68a; --tile-normal-border:   #fbbf24;
+    --tile-wildcard-from: #ede9fe; --tile-wildcard-to: #ddd6fe; --tile-wildcard-border: #a78bfa;
+    --tile-anchored-from: #ffe4e6; --tile-anchored-to: #fecdd3; --tile-anchored-border: #fb7185;
+    --tile-crossing-from: #dbeafe; --tile-crossing-to: #bfdbfe; --tile-crossing-border: #60a5fa;
+    --tile-board-from:    #ccfbf1; --tile-board-to:    #99f6e4; --tile-board-border:    #2dd4bf;
+
+    /* Tile text */
+    --tile-text:  #292524;
+    --tile-score: #44403c;
+  }
+
+  /* ── Dark theme tokens ───────────────────────────────────────────── */
+  [data-theme="dark"] {
+    --background:        20 12% 8%;     /* #171412 */
+    --foreground:        32 30% 94%;    /* #f5f0eb */
+    --card:              20 10% 12%;    /* #231f1c */
+    --card-foreground:   32 30% 94%;
+    --border:            22 10% 21%;    /* #3a3530 */
+    --input:             22 10% 21%;
+    --ring:              25 5% 63%;     /* #a8a09a */
+    --muted:             20 13% 10%;
+    --muted-foreground:  25 5% 63%;     /* #a8a09a */
+
+    --surface-shadow: 0 1px 6px rgba(0,0,0,.45), 0 0 0 1px rgba(255,255,255,.04);
+
+    --tile-normal-from:   #b45309; --tile-normal-to:   #d97706; --tile-normal-border:   #fbbf24;
+    --tile-wildcard-from: #4c1d95; --tile-wildcard-to: #5b21b6; --tile-wildcard-border: #7c3aed;
+    --tile-anchored-from: #881337; --tile-anchored-to: #9f1239; --tile-anchored-border: #e11d48;
+    --tile-crossing-from: #1e3a5f; --tile-crossing-to: #1e40af; --tile-crossing-border: #3b82f6;
+    --tile-board-from:    #134e4a; --tile-board-to:    #115e59; --tile-board-border:    #0d9488;
+
+    --tile-text:  #f5f0eb;
+    --tile-score: #d6cfc9;
   }
 
   * {
@@ -22,5 +62,36 @@
 
   body {
     @apply bg-background text-foreground;
+    transition: background-color 0.25s, color 0.25s;
+  }
+}
+
+@layer components {
+  /* Tile gradient classes — driven by CSS variables, theme-aware */
+  .tile-normal {
+    background: linear-gradient(135deg, var(--tile-normal-from), var(--tile-normal-to));
+    border-color: var(--tile-normal-border);
+  }
+  .tile-wildcard {
+    background: linear-gradient(135deg, var(--tile-wildcard-from), var(--tile-wildcard-to));
+    border-color: var(--tile-wildcard-border);
+  }
+  .tile-anchored {
+    background: linear-gradient(135deg, var(--tile-anchored-from), var(--tile-anchored-to));
+    border-color: var(--tile-anchored-border);
+  }
+  .tile-crossing {
+    background: linear-gradient(135deg, var(--tile-crossing-from), var(--tile-crossing-to));
+    border-color: var(--tile-crossing-border);
+  }
+  .tile-board {
+    background: linear-gradient(135deg, var(--tile-board-from), var(--tile-board-to));
+    border-color: var(--tile-board-border);
+  }
+
+  /* Theme-aware card shadow */
+  .card-shadow {
+    box-shadow: var(--surface-shadow);
+    transition: background-color 0.25s, border-color 0.25s, box-shadow 0.25s;
   }
 }
