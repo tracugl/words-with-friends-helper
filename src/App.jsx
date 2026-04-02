@@ -66,8 +66,22 @@ const sanitizeLetters      = (v) => sanitize(v, /[^a-z*?]/g);
 const sanitizePattern      = (v) => sanitize(v, /[^a-z_]/g);
 const sanitizeBoardLetters = (v) => sanitize(v, /[^a-z]/g);
 
-function scoreWord(word) {
-  return word.split("").reduce((sum, char) => sum + (TILE_VALUES[char] || 0), 0);
+/**
+ * Calculates the total point value of a word, accounting for wildcard tiles.
+ * In Scrabble-style games, blank/wildcard tiles always score 0 regardless of
+ * the letter they represent — only the tile's face value matters.
+ *
+ * @param {string} word - The dictionary word being scored.
+ * @param {Set<number>} wildcardIndices - Positions in the word that were filled
+ *   by a wildcard tile (`*` or `?`). These positions contribute 0 points.
+ * @returns {number} The total tile score for the word.
+ */
+function scoreWord(word, wildcardIndices = new Set()) {
+  return word.split("").reduce((sum, char, index) => {
+    // Wildcard tiles score 0 regardless of which letter they represent
+    if (wildcardIndices.has(index)) return sum;
+    return sum + (TILE_VALUES[char] || 0);
+  }, 0);
 }
 
 function getRackCounts(letters) {
@@ -174,7 +188,7 @@ function solveWords({ letters = "", pattern = "", boardWord = "", boardLetters =
         }
       }
 
-      return { word, score: scoreWord(word), patternIndices, crossingIndex, boardLetterIndex, wildcardIndices };
+      return { word, score: scoreWord(word, wildcardIndices), patternIndices, crossingIndex, boardLetterIndex, wildcardIndices };
     })
     .filter(Boolean)
     .sort((a, b) => b.score - a.score || a.word.localeCompare(b.word))
@@ -205,7 +219,17 @@ function SunIcon() {
   );
 }
 
-function LetterTile({ letter, value, small = false, variant = "normal" }) {
+/**
+ * Renders a single Scrabble-style letter tile.
+ *
+ * @param {string}  letter   - The letter to display on the tile.
+ * @param {number}  value    - The point value shown in the bottom-right corner.
+ * @param {boolean} small    - Render a smaller tile (40 × 40) for word result rows.
+ * @param {string}  variant  - Visual style key from VARIANT_STYLES.
+ * @param {boolean} wild     - When true, renders the letter lowercase (no CSS uppercase)
+ *   to signal it is a blank/wildcard tile worth 0 points.
+ */
+function LetterTile({ letter, value, small = false, variant = "normal", wild = false }) {
   return (
     <div
       className={cn(
@@ -216,7 +240,10 @@ function LetterTile({ letter, value, small = false, variant = "normal" }) {
     >
       <span
         className={cn(
-          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold uppercase",
+          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold",
+          // Wildcard tiles are shown in lowercase so players can distinguish
+          // blanks from regular tiles at a glance, matching Scrabble convention
+          !wild && "uppercase",
           small ? "text-base" : "text-lg",
         )}
         style={{ color: "var(--tile-text)" }}
@@ -324,13 +351,17 @@ export default function App() {
                       else if (result.boardLetterIndex === index) variant = "board";
                       else if (result.wildcardIndices.has(index)) variant = "wildcard";
 
+                      // Wildcard tiles score 0 and are displayed lowercase to
+                      // indicate they are blanks, not regular scored tiles
+                      const isWild = result.wildcardIndices.has(index);
                       return (
                         <LetterTile
                           key={`${result.word}-${index}`}
                           letter={char}
-                          value={TILE_VALUES[char] || 0}
+                          value={isWild ? 0 : TILE_VALUES[char] || 0}
                           small
                           variant={variant}
+                          wild={isWild}
                         />
                       );
                     })}
