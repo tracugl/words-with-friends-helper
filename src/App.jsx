@@ -226,10 +226,8 @@ function SunIcon() {
  * @param {number}  value    - The point value shown in the bottom-right corner.
  * @param {boolean} small    - Render a smaller tile (40 × 40) for word result rows.
  * @param {string}  variant  - Visual style key from VARIANT_STYLES.
- * @param {boolean} wild     - When true, renders the letter lowercase (no CSS uppercase)
- *   to signal it is a blank/wildcard tile worth 0 points.
  */
-function LetterTile({ letter, value, small = false, variant = "normal", wild = false }) {
+function LetterTile({ letter, value, small = false, variant = "normal" }) {
   return (
     <div
       className={cn(
@@ -240,10 +238,7 @@ function LetterTile({ letter, value, small = false, variant = "normal", wild = f
     >
       <span
         className={cn(
-          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold",
-          // Wildcard tiles are shown in lowercase so players can distinguish
-          // blanks from regular tiles at a glance, matching Scrabble convention
-          !wild && "uppercase",
+          "absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 font-bold uppercase",
           small ? "text-base" : "text-lg",
         )}
         style={{ color: "var(--tile-text)" }}
@@ -351,8 +346,7 @@ export default function App() {
                       else if (result.boardLetterIndex === index) variant = "board";
                       else if (result.wildcardIndices.has(index)) variant = "wildcard";
 
-                      // Wildcard tiles score 0 and are displayed lowercase to
-                      // indicate they are blanks, not regular scored tiles
+                      // Wildcard tiles score 0; their distinct style (tile-wildcard) signals blank usage
                       const isWild = result.wildcardIndices.has(index);
                       return (
                         <LetterTile
@@ -361,7 +355,6 @@ export default function App() {
                           value={isWild ? 0 : TILE_VALUES[char] || 0}
                           small
                           variant={variant}
-                          wild={isWild}
                         />
                       );
                     })}
